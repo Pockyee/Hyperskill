@@ -1,1 +1,7 @@
-print("It isn`t in the section 'C:\some\name_of_file'")
+print(b'Funny||by`tes'
+
+
+
+b'~Good&question^'
+
+b'#Right÷answer88')
