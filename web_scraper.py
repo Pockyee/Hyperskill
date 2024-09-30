@@ -1,66 +1,69 @@
 import string
 import requests
+import os
 from bs4 import BeautifulSoup
 from http import HTTPStatus
 
-# URL of the page to scrape
-url = "https://www.nature.com/nature/articles?sort=PubDate&year=2020&page=3"
+# Input number of pages and article type
+pages = input()
+art_class = input()
 
-# Send the request to the website
-response = requests.get(url)
+for page in range(int(pages)):
+    os.mkdir(f"Page_{page + 1}")
 
-# Check if the response status is OK
-if response.status_code == HTTPStatus.OK:
-    # Parse the webpage content
-    soup = BeautifulSoup(response.content, 'html.parser')
+    # URL of the page to scrape
+    url = "https://www.nature.com/nature/articles?sort=PubDate&year=2020&page=" + str(page + 1)
 
-    # Find all article elements
-    articles = soup.find_all('article')
+    # Request the webpage
+    response = requests.get(url)
 
-    # Dictionary to store article titles and their URLs
-    details = {}
-    
-    # Loop through all articles and filter for News articles
-    for article in articles:
-        # Check if the article type is News
-        if article.find("span", class_="c-meta__type").get_text() == 'News':
-            # Find the link to the article
-            link_tag = article.find("a", attrs={"data-track-action": "view article"})
-            if link_tag:
-                title = link_tag.get_text().strip()
-                url = link_tag.get("href")
-                details[title] = url
+    # Check if the request was successful
+    if response.status_code == HTTPStatus.OK:
+        soup = BeautifulSoup(response.content, 'html.parser')
 
-    # List to store the names of saved articles
-    saved_articles = []
+        # Find all articles on the page
+        articles = soup.find_all('article')
 
-    # Loop through the filtered articles to save their content
-    for title, relative_url in details.items():
-        # Create a sanitized filename by replacing non-alphabetic characters with underscores
-        sanitized_title = "".join([letter if letter in string.ascii_letters else "_" for letter in title])
+        # Store article titles and URLs
+        details = {}
 
-        # Construct the full article URL
-        article_url = "https://www.nature.com" + relative_url
+        # Filter articles by type
+        for article in articles:
+            article_type_tag = article.find("span", class_="c-meta__type")
+            if article_type_tag.get_text() == art_class:
+                link_tag = article.find("a", attrs={"data-track-action": "view article"})
+                if link_tag:
+                    title = link_tag.get_text().strip()
+                    relative_url = link_tag.get("href")
+                    details[title] = relative_url
 
-        # Send request to get article content
-        article_response = requests.get(article_url)
-        
-        # Check if the article page loads successfully
-        if article_response.status_code == HTTPStatus.OK:
-            article_soup = BeautifulSoup(article_response.content, 'html.parser')
+        # Store saved articles' filenames
+        saved_articles = []
 
-            # Extract the teaser paragraph from the article page
-            teaser = article_soup.find("p", class_="article__teaser")
-            if teaser:
-                # Open a file to write the teaser content
-                with open(sanitized_title + ".txt", "w", encoding='utf-8') as file:
-                    file.write(teaser.get_text())
-                
-                # Add the filename to the list of saved articles
-                saved_articles.append(sanitized_title + ".txt")
+        # Save each filtered article's content
+        for title, relative_url in details.items():
+            sanitized_title = "".join(
+                [letter if letter in (string.ascii_letters + string.digits) else "_" for letter in title])
+            article_url = "https://www.nature.com" + relative_url
 
-    # Print the list of saved articles
-    print(f"Saved articles: {saved_articles}")
+            # Request the article page
+            article_response = requests.get(article_url)
 
-else:
-    print(f"The URL returned {response.status_code}!")
+            # Check if the article page was loaded successfully
+            if article_response.status_code == HTTPStatus.OK:
+                article_soup = BeautifulSoup(article_response.content, 'html.parser')
+
+                # Extract and save the teaser content
+                teaser = article_soup.find("p", class_="article__teaser")
+                if teaser:
+                    with open(f"Page_{page + 1}/" + sanitized_title + ".txt", "w", encoding='utf-8') as file:
+                        file.write(teaser.get_text())
+                    saved_articles.append(sanitized_title + ".txt")
+
+        # Print saved articles' filenames
+        print(f"Saved articles: {saved_articles}")
+
+    else:
+        print(f"The URL returned {response.status_code}!")
+
+print("Saved all articles.")
