@@ -60,6 +60,7 @@ while True:
   pass
  elif form == "new-line":
   text += new_line()
+  print(text)
   pass
  elif form == "!help":
   print("""Available formatters: plain bold italic header link inline-code new-line\nSpecial commands: !done""")
