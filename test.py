@@ -1,71 +1,12 @@
-formatters = ["plain", "bold", "italic", "header", "link", "inline-code", "new-line"]
-
-def plain(content):
- return content
-
-def bold(content):
- return "**" + content + "**"
-
-def italic(content):
- return "*" + content + "*"
-
-def inline_code(content):
- return "`" + content + "`"
-
-def link(label, url):
- return "[" + label + "]" + "(" + url + ")"
-
-def header(content, level):
- return "#" * int(level) + " " + content + "\n"
-
-def new_line():
- return "\n"
-
-form = ""
-text = ""
-while True:
- form = input("Choose a formatter:")
- if form == "plain":
-  text += plain(input("Text:"))
-  print(text)
-  pass
- elif form == "bold":
-  text += bold(input("Text:"))
-  print(text)
-  pass
- elif form == "italic":
-  text += italic(input("Text:"))
-  print(text)
-  pass
- elif form == "inline-code":
-  text += inline_code(input("Text:"))
-  print(text)
-  pass
- elif form == "link":
-  label = input("Label:")
-  url = input("URL:")
-  text += link(label, url)
-  print(text)
-  pass
- elif form == "header":
-  while True:
-   level = input("Level:")
-   if 1 <= int(level) <= 6:
-    break
-   else:
-    print("The level should be within the range of 1 to 6")
-  content = input("Text:")
-  text += header(content, level)
-  print(text)
-  pass
- elif form == "new-line":
-  text += new_line()
-  pass
- elif form == "!help":
-  print("""Available formatters: plain bold italic header link inline-code new-line\nSpecial commands: !done""")
- elif form == "!done":
-  break
- else:
-  print("Unknown formatting type or command")
-
-
+def get_percentage(number, ndigits=None):
+    
+    if ndigits==None:
+        return str(round(number * 100))+"%"
+    else:
+        return str(round(number * 100, ndigits))+"%"
+    pass
+print(get_percentage(0.0123))      # 1%
+print(get_percentage(0.0123, 0))   # 1.0%
+print(get_percentage(0.0123, 1))   # 1.2%
+print(get_percentage(0.0123, 10))  # 1.23%
+print(get_percentage(0.0296, 1))   # 3.0%
