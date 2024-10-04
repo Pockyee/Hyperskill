@@ -58,6 +58,9 @@ while True:
         text += formatters[form]()
         print(text)
     elif form == "!done":
+        file = open("output.md","w")
+        file.write(text)
+        file.close()
         break
     else:
         print("Unknown formatting type or command")
