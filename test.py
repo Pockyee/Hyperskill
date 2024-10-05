@@ -1,10 +1,14 @@
-number_one = int(input("Please, enter the first number: "))
-number_two = int(input("Please, enter the second number: "))
-try:
-    result = number_one / number_two
-except ZeroDivisionError:
-    print("We achieve it thanks to except ***You can not divide by zero!!")
+import sys  
+
+args = sys.argv  
+
+if len(args) != 3:
+    print("The script should be called with two arguments, the first and the second number to be multiplied")
+
 else:
-    print("The result of your division is: ", result)
-finally:
-    print("It is done through finally ***Thanks for using our calculator! Come again!")
+    first_num = float(args[1])  
+    second_num = float(args[2])
+
+    product = first_num * second_num
+
+    print("The product of " + args[1] + " times " + args[2] + " equals " + str(product))
