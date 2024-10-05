@@ -1,23 +1,13 @@
-def calculate_checksum(card_number):
-    digits = [int(d) for d in str(card_number)]
-    checksum = 0
-    reverse_digits = digits[::-1]
-    for i, digit in enumerate(reverse_digits):
-        if i % 2 == 0:
-            doubled = digit * 2
-            if doubled > 9:
-                doubled -= 9
-            checksum += doubled
-        else:
-            checksum += digit
-    return (10 - (checksum % 10)) % 10
+class Sun:
+    n = 0  # number of instances of this class
 
-card_number = "4000000777302995"  # 示例信用卡号
-print (calculate_checksum(card_number))
+    def __new__(cls):
+        if cls.n == 0: 
+            cls.n += 1
+            return object.__new__(cls)  # create new object of the class
+        
+sun1 = Sun()
+sun2 = Sun()
 
-print (calculate_checksum(card_number [:15]))
-print (card_number[15])
-
-print(card_number[15] != calculate_checksum(card_number [:15]))
-
-print(1!=1)
+print(sun1)  # <__main__.Sun object at 0x1106884a8>
+print(sun2)  # None
