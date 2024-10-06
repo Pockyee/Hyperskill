@@ -1,14 +1,29 @@
-import sys  
+list = [1, 7, 3, 6, 0, 8, 6, 7, 5, 3]
 
-args = sys.argv  
 
-if len(args) != 3:
-    print("The script should be called with two arguments, the first and the second number to be multiplied")
+def mergesort_list(x):
+    if len(x) <= 1:
+        return x
+    else:
+        mid = len(x) // 2
+        left = mergesort_list(x[:mid])
+        right = mergesort_list(x[mid:])
+        return merge(left,right)
 
-else:
-    first_num = float(args[1])  
-    second_num = float(args[2])
 
-    product = first_num * second_num
+def merge(left, right):
+    new = []
+    i = j = 0
+    while i < len(left) and j < len(right):
+        if left[i] < right[j]:
+            new.append(left[i])
+            i += 1
+        else:
+            new.append(right[j])
+            j += 1
+    new.extend(left[i:])
+    new.extend(right[j:])
+    return new
 
-    print("The product of " + args[1] + " times " + args[2] + " equals " + str(product))
+new_list = mergesort_list(list)
+print("".join(new_list))
