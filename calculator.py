@@ -1,10 +1,9 @@
 import csv
 import os
-from sqlalchemy import create_engine, Column, String, Float
+from sqlalchemy import create_engine, Column, String, Float, desc
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
-
 
 
 menu = {
@@ -44,12 +43,14 @@ def replace_empty_with_none(dict):
             dict[key] = None
     return dict
 
+
 def set_engine():
     global session
     engine = create_engine("sqlite:///investor.db", echo=False)
     Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
     session = Session()
+
 
 def create_db():
     with open("./test/companies.csv", "r") as companies:
@@ -115,6 +116,7 @@ def create_a_company():
     except IntegrityError:
         session.rollback()
 
+
 def read_company():
     x = input("Enter company name:\n")
     results = session.query(Companies).filter(Companies.name.like(f"%{x}%")).all()
@@ -132,15 +134,24 @@ def read_company():
 
 def financial_data(ticker):
     finance = session.query(Financial).filter(Financial.ticker == ticker).first()
-    pe_ratio = round(finance.market_price / finance.net_profit, 2) if finance.net_profit else None
+    pe_ratio = (
+        round(finance.market_price / finance.net_profit, 2)
+        if finance.net_profit
+        else None
+    )
     ps_ratio = round(finance.market_price / finance.sales, 2) if finance.sales else None
-    pb_ratio = round(finance.market_price / finance.assets, 2) if finance.assets else None
+    pb_ratio = (
+        round(finance.market_price / finance.assets, 2) if finance.assets else None
+    )
     nd_ebitda = round(finance.net_debt / finance.ebitda, 2) if finance.ebitda else None
     roe = round(finance.net_profit / finance.equity, 2) if finance.equity else None
     roa = round(finance.net_profit / finance.assets, 2) if finance.assets else None
-    la_ratio = round(finance.liabilities / finance.assets, 2) if finance.assets else None
+    la_ratio = (
+        round(finance.liabilities / finance.assets, 2) if finance.assets else None
+    )
     print(
-        f"""P/E = {pe_ratio}\nP/S = {ps_ratio}\nP/B = {pb_ratio}\nND/EBITDA = {nd_ebitda}\nROE = {roe}\nROA = {roa}\nL/A = {la_ratio}""")
+        f"""P/E = {pe_ratio}\nP/S = {ps_ratio}\nP/B = {pb_ratio}\nND/EBITDA = {nd_ebitda}\nROE = {roe}\nROA = {roa}\nL/A = {la_ratio}"""
+    )
 
 
 def update_company(ticker):
@@ -177,10 +188,49 @@ def delete_company(ticker):
 
 
 def list_company():
-    results=session.query(Companies).order_by(Companies.ticker).all()
+    results = session.query(Companies).order_by(Companies.ticker).all()
     print("COMPANY LIST")
     for company in results:
         print(f"{company.ticker} {company.name} {company.sector}")
+
+
+def top_nd_ebitda():
+    results = (
+        session.query(Financial)
+        .filter(Financial.ebitda != 0)
+        .order_by(desc(Financial.net_debt / Financial.ebitda))
+        .limit(10)
+        .all()
+    )
+    print("TICKER ND/EBITDA")
+    for company in results:
+        print(f"{company.ticker} {round(company.net_debt/company.ebitda, 2)}")
+
+
+def top_roe():
+    results = (
+        session.query(Financial)
+        .filter(Financial.equity != 0)
+        .order_by(desc(Financial.net_profit / Financial.equity))
+        .limit(10)
+        .all()
+    )
+    print("TICKER ROE")
+    for company in results:
+        print(f"{company.ticker} {round(company.net_profit/company.equity, 2)}")
+
+
+def top_roa():
+    results = (
+        session.query(Financial)
+        .filter(Financial.assets != 0)
+        .order_by(desc(Financial.net_profit / Financial.assets))
+        .limit(10)
+        .all()
+    )
+    print("TICKER ROA")
+    for company in results:
+        print(f"{company.ticker} {round(company.net_profit/company.assets, 2)}")
 
 
 def crud():
@@ -220,8 +270,12 @@ def topten():
     choice = input()
     if choice == "0":
         pass
-    elif choice in ["1", "2", "3"]:
-        print("Not implemented!")
+    elif choice == "1":
+        top_nd_ebitda()
+    elif choice == "2":
+        top_roe()
+    elif choice == "3":
+        top_roa()
     else:
         print("Invalid option!")
 
