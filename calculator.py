@@ -5,15 +5,18 @@ from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
 
-
+# Define main menu options
 menu = {
     "main": "MAIN MENU\n0 Exit\n1 CRUD operations\n2 Show top ten companies by criteria\n\nEnter an option:",
     "crud": "CRUD MENU\n0 Back\n1 Create a company\n2 Read a company\n3 Update a company\n4 Delete a company\n5 List all companies\n\nEnter an option:",
     "topten": "TOP TEN MENU\n0 Back\n1 List by ND/EBITDA\n2 List by ROE\n3 List by ROA\n\nEnter an option:",
 }
+
+# Create the base class for SQLAlchemy ORM
 Base = declarative_base()
 
 
+# Define Companies table schema (holds basic company information)
 class Companies(Base):
     __tablename__ = "companies"
 
@@ -22,6 +25,7 @@ class Companies(Base):
     sector = Column(String)
 
 
+# Define Financial table schema (holds financial data for companies)
 class Financial(Base):
     __tablename__ = "financial"
 
@@ -37,6 +41,7 @@ class Financial(Base):
     liabilities = Column(Float)
 
 
+# Utility function to replace empty fields with None (used for data validation)
 def replace_empty_with_none(dict):
     for key, value in dict.items():
         if value == "":
@@ -44,6 +49,7 @@ def replace_empty_with_none(dict):
     return dict
 
 
+# Initialize the database engine and create a session
 def set_engine():
     global session
     engine = create_engine("sqlite:///investor.db", echo=False)
@@ -52,6 +58,7 @@ def set_engine():
     session = Session()
 
 
+# Populate the database from CSV files if it doesn't exist
 def create_db():
     with open("./test/companies.csv", "r") as companies:
         reader = csv.DictReader(companies)
@@ -82,8 +89,10 @@ def create_db():
             session.commit()
 
 
+# Function to create a new company and its financial data
 def create_a_company():
     try:
+        # Input for the new company data
         ticker_ = input("Enter ticker (in the format 'MOON'):")
         company_ = input("Enter company (in the format 'Moon Corp'):")
         industries_ = input("Enter industries (in the format 'Technology'):")
@@ -96,6 +105,7 @@ def create_a_company():
         equity_ = input("Enter equity (in the format '987654321'):")
         cash_equivalents_ = input("Enter cash equivalents (in the format '987654321'):")
         liabilities_ = input("Enter liabilities (in the format '987654321'):")
+        # Add company and financial data to the session and commit to the database
         session.add(Companies(ticker=ticker_, name=company_, sector=industries_))
         session.add(
             Financial(
@@ -117,6 +127,7 @@ def create_a_company():
         session.rollback()
 
 
+# Function to read and retrieve a company by name
 def read_company():
     x = input("Enter company name:\n")
     results = session.query(Companies).filter(Companies.name.like(f"%{x}%")).all()
@@ -132,6 +143,7 @@ def read_company():
     return results[j]
 
 
+# Function to display financial data for a specific company
 def financial_data(ticker):
     finance = session.query(Financial).filter(Financial.ticker == ticker).first()
     pe_ratio = (
@@ -154,6 +166,7 @@ def financial_data(ticker):
     )
 
 
+# Function to update financial data for a company
 def update_company(ticker):
     finance = session.query(Financial).filter(Financial.ticker == ticker).first()
     ebitda_ = input("Enter ebitda (in the format '987654321'):")
@@ -180,6 +193,7 @@ def update_company(ticker):
     print("Company updated successfully!")
 
 
+# Function to delete a company and its financial data from the database
 def delete_company(ticker):
     session.query(Companies).filter(Companies.ticker == ticker).delete()
     session.query(Financial).filter(Financial.ticker == ticker).delete()
@@ -187,6 +201,7 @@ def delete_company(ticker):
     print("Company deleted successfully!")
 
 
+# Function to list all companies in the database
 def list_company():
     results = session.query(Companies).order_by(Companies.ticker).all()
     print("COMPANY LIST")
@@ -194,6 +209,7 @@ def list_company():
         print(f"{company.ticker} {company.name} {company.sector}")
 
 
+# Function to list the top 10 companies by different ratios
 def top_nd_ebitda():
     results = (
         session.query(Financial)
@@ -233,68 +249,81 @@ def top_roa():
         print(f"{company.ticker} {round(company.net_profit/company.assets, 2)}")
 
 
+# Function to manage Create, Read, Update, and Delete (CRUD) operations
 def crud():
-    print(menu["crud"])
+    print(menu["crud"])  # Display CRUD menu
     choice = input()
-    if choice == "0":
+
+    # Handle user selection for different CRUD operations
+    if choice == "0":  # Go back to the main menu
         pass
-    elif choice == "1":
+    elif choice == "1":  # Create a new company
         create_a_company()
-    elif choice == "2":
+    elif choice == "2":  # Read and display details of a company
         x = read_company()
         if x:
             print(f"{x.ticker} {x.name}")
             financial_data(x.ticker)
         else:
             return None
-    elif choice == "3":
+    elif choice == "3":  # Update an existing company
         x = read_company()
         if x:
             update_company(x.ticker)
         else:
             return None
-    elif choice == "4":
+    elif choice == "4":  # Delete a company
         x = read_company()
         if x:
             delete_company(x.ticker)
         else:
             return None
-    elif choice == "5":
+    elif choice == "5":  # List all companies
         list_company()
-    else:
+    else:  # Invalid input handling
         print("Invalid option!")
 
 
+# Function to manage displaying the top ten companies based on financial metrics
 def topten():
-    print(menu["topten"])
+    print(menu["topten"])  # Display top ten menu
     choice = input()
-    if choice == "0":
+
+    # Handle user selection for different ranking criteria
+    if choice == "0":  # Go back to the main menu
         pass
-    elif choice == "1":
+    elif choice == "1":  # Display top 10 companies by ND/EBITDA
         top_nd_ebitda()
-    elif choice == "2":
+    elif choice == "2":  # Display top 10 companies by ROE
         top_roe()
-    elif choice == "3":
+    elif choice == "3":  # Display top 10 companies by ROA
         top_roa()
-    else:
+    else:  # Invalid input handling
         print("Invalid option!")
 
 
+# Entry point of the program
 print("Welcome to the Investor Program!")
+
+# Set up the database if it exists, or create it if it doesn't
 if os.path.exists("investor.db"):
-    set_engine()
+    set_engine()  # Initialize the database engine and session
 else:
-    set_engine()
-    create_db()
+    set_engine()  # Initialize the engine
+    create_db()  # Create the database from CSV files if it doesn't exist
+
+# Main loop to keep the program running until the user chooses to exit
 while True:
-    print(menu["main"])
+    print(menu["main"])  # Display main menu
     choice = input()
-    if choice == "0":
+
+    # Handle user input to navigate the program
+    if choice == "0":  # Exit the program
         print("Have a nice day!")
         exit()
-    elif choice == "1":
+    elif choice == "1":  # Navigate to CRUD operations
         crud()
-    elif choice == "2":
+    elif choice == "2":  # Navigate to Top Ten companies menu
         topten()
-    else:
+    else:  # Invalid input handling
         print("Invalid option!")
