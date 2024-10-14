@@ -11,7 +11,7 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal"
-            "args": ["-sortingType", "byCount", "-dataType", "long", "-inputFile", "input.txt"]
+            "args": ["test/test_1.py"]
         }
     ]
 }
